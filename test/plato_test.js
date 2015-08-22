@@ -31,7 +31,8 @@ var es6options = {
       globalReturn: false,
       experimentalObjectRestSpread: false
     }
-  }
+  },
+  eslint: true
 };
 
 /*
@@ -83,8 +84,9 @@ exports['plato'] = {
       test.done();
     });
   },
-  'test report structure' : function(test) {
-    test.expect(4);
+
+  'test report structure without linters' : function(test) {
+    test.expect(6);
 
     var files = [
       'test/fixtures/a.js',
@@ -94,11 +96,53 @@ exports['plato'] = {
     plato.inspect(files, null, {}, function(reports) {
       reports.forEach(function(report) {
         test.ok(report.complexity, 'Should contain a complexity report');
-        test.ok(report.jshint, 'Should contain a jshint report');
+        test.ok(!report.jshint, 'Should *not* contain a jshint report');
+        test.ok(!report.eslint, 'Should *not* contain a eslint report');
       });
       test.done();
     });
   },
+
+  'test report structure using jshint' : function(test) {
+    test.expect(6);
+
+    var files = [
+      'test/fixtures/a.js',
+      'test/fixtures/b.js'
+    ];
+
+    plato.inspect(files, null, {
+      jshint: true
+    }, function(reports) {
+      reports.forEach(function(report) {
+        test.ok(report.complexity, 'Should contain a complexity report');
+        test.ok(report.jshint, 'Should contain a jshint report');
+        test.ok(!report.eslint, 'Should *not* contain a eslint report');
+      });
+      test.done();
+    });
+  },
+
+  'test report structure using eslint' : function(test) {
+    test.expect(6);
+
+    var files = [
+      'test/fixtures/a.js',
+      'test/fixtures/b.js'
+    ];
+
+    plato.inspect(files, null, {
+      eslint: true
+    }, function(reports) {
+      reports.forEach(function(report) {
+        test.ok(report.complexity, 'Should contain a complexity report');
+        test.ok(report.eslint, 'Should contain a eslint report');
+        test.ok(!report.jshint, 'Should *not* contain a jshint report');
+      });
+      test.done();
+    });
+  },
+
   'test report structure of ES6 files' : function(test) {
     test.expect(4);
 
@@ -110,13 +154,13 @@ exports['plato'] = {
     plato.inspect(files, null, es6options, function(reports) {
       reports.forEach(function(report) {
         test.ok(report.complexity, 'Should contain a complexity report');
-        test.ok(report.jshint, 'Should contain a jshint report');
+        test.ok(report.eslint, 'Should contain an eslint report');
       });
       test.done();
     });
   },
-  'test overview report structure' : function(test) {
 
+  'test overview report structure' : function(test) {
     var files = [
       'test/fixtures/a.js',
       'test/fixtures/b.js'
@@ -124,20 +168,22 @@ exports['plato'] = {
 
     test.expect((files.length * 3) + 1);
 
-    plato.inspect(files, null, {}, function(reports) {
+    plato.inspect(files, null, {
+      jshint: true
+    }, function(reports) {
       var overview = plato.getOverviewReport(reports);
-      test.ok(overview.summary.total.jshint >= 0, 'Should contain total jshint issues');
+      test.ok(overview.summary.total.lint >= 0, 'Should contain total linting issues');
       test.ok(overview.summary.total.sloc > 0, 'Should contain total sloc');
       test.ok(overview.summary.total.maintainability > 0, 'Should contain total maintainability');
-      test.ok(overview.summary.average.jshint >= 0, 'Should contain average jshint issues');
+      test.ok(overview.summary.average.lint >= 0, 'Should contain average linting issues');
       test.ok(overview.summary.average.sloc > 0, 'Should contain average sloc');
       test.ok(overview.summary.average.maintainability > 0, 'Should contain average maintainability');
       test.equal(overview.reports.length, files.length,'Should contain right number of reports');
       test.done();
     });
   },
-  'test overview report structure of ES6 files' : function(test) {
 
+  'test overview report structure of ES6 files' : function(test) {
     var files = [
       'test/fixtures/es6.js',
       'test/fixtures/es6-extended.js'
@@ -147,16 +193,17 @@ exports['plato'] = {
 
     plato.inspect(files, null, es6options, function(reports) {
       var overview = plato.getOverviewReport(reports);
-      test.ok(overview.summary.total.jshint >= 0, 'Should contain total jshint issues');
+      test.ok(overview.summary.total.lint >= 0, 'Should contain total linting issues');
       test.ok(overview.summary.total.sloc > 0, 'Should contain total sloc');
       test.ok(overview.summary.total.maintainability > 0, 'Should contain total maintainability');
-      test.ok(overview.summary.average.jshint >= 0, 'Should contain average jshint issues');
+      test.ok(overview.summary.average.lint >= 0, 'Should contain average linting issues');
       test.ok(overview.summary.average.sloc > 0, 'Should contain average sloc');
       test.ok(overview.summary.average.maintainability > 0, 'Should contain average maintainability');
       test.equal(overview.reports.length, files.length,'Should contain right number of reports');
       test.done();
     });
   },
+
   'test file with shebang' : function(test) {
     test.expect(1);
 
@@ -171,6 +218,7 @@ exports['plato'] = {
       test.done();
     });
   },
+
   'test noempty line option' : function(test) {
     test.expect(1);
 
@@ -185,8 +233,7 @@ exports['plato'] = {
      });
   },
 
-  'should run jshint with default config' : function(test) {
-
+  'should not execute any linting with default config' : function(test) {
     var files = [
       'test/fixtures/a.js',
       'test/fixtures/b.js'
@@ -196,7 +243,41 @@ exports['plato'] = {
 
     plato.inspect(files, null, {}, function(reports) {
       var overview = plato.getOverviewReport(reports);
-      test.ok(overview.summary.total.jshint === 2, 'Should contain total jshint issues');
+      test.ok(!overview.summary.total.lint, 'Should contain total linting issues');
+      test.done();
+    });
+  },
+
+  'should have linting infos if run with jshint: true' : function(test) {
+    var files = [
+      'test/fixtures/a.js',
+      'test/fixtures/b.js'
+    ];
+
+    test.expect(1);
+
+    plato.inspect(files, null, {
+      jshint: true
+    }, function(reports) {
+      var overview = plato.getOverviewReport(reports);
+      test.ok(overview.summary.total.lint === 2, 'Should contain total linting issues');
+      test.done();
+    });
+  },
+
+  'should have linting infos if run with eslint: true' : function(test) {
+    var files = [
+      'test/fixtures/a.js',
+      'test/fixtures/b.js'
+    ];
+
+    test.expect(1);
+
+    plato.inspect(files, null, {
+      eslint: true
+    }, function(reports) {
+      var overview = plato.getOverviewReport(reports);
+      test.ok(overview.summary.total.lint === 3, 'Should contain total linting issues');
       test.done();
     });
   }
