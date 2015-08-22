@@ -2,6 +2,38 @@
 
 var plato = require('../lib/plato');
 
+var es6options = {
+  complexity: {
+    ecmaFeatures: {
+      arrowFunctions: true,
+      blockBindings: true,
+      destructuring: true,
+      regexUFlag: false,
+      regexYFlag: false,
+      templateStrings: true,
+      binaryLiterals: false,
+      octalLiterals: false,
+      unicodeCodePointEscapes: true,
+      defaultParams: true,
+      restParams: true,
+      forOf: false,
+      objectLiteralComputedProperties: true,
+      objectLiteralShorthandMethods: true,
+      objectLiteralShorthandProperties: true,
+      objectLiteralDuplicateProperties: false,
+      generators: false,
+      spread: true,
+      superInFunctions: true,
+      classes: true,
+      newTarget: false,
+      modules: true,
+      jsx: false,
+      globalReturn: false,
+      experimentalObjectRestSpread: false
+    }
+  }
+};
+
 /*
   ======== A Handy Little Nodeunit Reference ========
   https://github.com/caolan/nodeunit
@@ -46,8 +78,8 @@ exports['plato'] = {
 
     var files = './test/fixtures/*.js';
 
-    plato.inspect(files, null, {}, function(reports) {
-      test.equal(reports.length, 5, 'Should properly test against the array produced by the glob');
+    plato.inspect(files, null, es6options, function(reports) {
+      test.equal(reports.length, 7, 'Should properly test against the array produced by the glob');
       test.done();
     });
   },
@@ -67,6 +99,22 @@ exports['plato'] = {
       test.done();
     });
   },
+  'test report structure of ES6 files' : function(test) {
+    test.expect(4);
+
+    var files = [
+      'test/fixtures/es6.js',
+      'test/fixtures/es6-extended.js'
+    ];
+
+    plato.inspect(files, null, es6options, function(reports) {
+      reports.forEach(function(report) {
+        test.ok(report.complexity, 'Should contain a complexity report');
+        test.ok(report.jshint, 'Should contain a jshint report');
+      });
+      test.done();
+    });
+  },
   'test overview report structure' : function(test) {
 
     var files = [
@@ -77,6 +125,27 @@ exports['plato'] = {
     test.expect((files.length * 3) + 1);
 
     plato.inspect(files, null, {}, function(reports) {
+      var overview = plato.getOverviewReport(reports);
+      test.ok(overview.summary.total.jshint >= 0, 'Should contain total jshint issues');
+      test.ok(overview.summary.total.sloc > 0, 'Should contain total sloc');
+      test.ok(overview.summary.total.maintainability > 0, 'Should contain total maintainability');
+      test.ok(overview.summary.average.jshint >= 0, 'Should contain average jshint issues');
+      test.ok(overview.summary.average.sloc > 0, 'Should contain average sloc');
+      test.ok(overview.summary.average.maintainability > 0, 'Should contain average maintainability');
+      test.equal(overview.reports.length, files.length,'Should contain right number of reports');
+      test.done();
+    });
+  },
+  'test overview report structure of ES6 files' : function(test) {
+
+    var files = [
+      'test/fixtures/es6.js',
+      'test/fixtures/es6-extended.js'
+    ];
+
+    test.expect((files.length * 3) + 1);
+
+    plato.inspect(files, null, es6options, function(reports) {
       var overview = plato.getOverviewReport(reports);
       test.ok(overview.summary.total.jshint >= 0, 'Should contain total jshint issues');
       test.ok(overview.summary.total.sloc > 0, 'Should contain total sloc');

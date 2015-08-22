@@ -31,11 +31,11 @@
   },
   "devDependencies": {
     "grunt": "~0.4.5",
-    "grunt-casper": "~0.4.1",
+    "grunt-casper": "~0.4.2",
     "grunt-cli": "^0.1.13",
     "grunt-contrib-jshint": "~0.11",
     "grunt-contrib-nodeunit": "~0.4.1",
-    "grunt-contrib-uglify": "~0.7.0",
+    "grunt-contrib-uglify": "~0.9.1",
     "grunt-contrib-watch": "~0.6.1"
   },
   "keywords": [
@@ -48,12 +48,13 @@
     "analyze"
   ],
   "dependencies": {
-    "escomplex-js": "~1.2.0",
-    "fs-extra": "^0.3.2",
-    "glob": "~4.4.1",
-    "jshint": "~2.6.3",
-    "lodash": "^3.3.1",
-    "posix-getopt": "~1.1.0",
-    "eslint": "^0.7.4"
+    "complexity-report": "~0.10.3",
+    "escomplex-js": "jsdotcr/escomplex-js",
+    "eslint": "^0.7.4",
+    "fs-extra": "~0.23.1",
+    "glob": "~5.0.14",
+    "jshint": "~2.8.0",
+    "lodash": "~3.10.1",
+    "posix-getopt": "~1.2.0"
   }
 }
